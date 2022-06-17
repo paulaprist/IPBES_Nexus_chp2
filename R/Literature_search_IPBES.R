@@ -45,6 +45,7 @@ docs <- paste(naiveresults[, "title"], naiveresults[, "abstract"])#joining title
 dfm <- create_dfm(elements=docs, features=all_keywords)#creating a matrix that records which terms appear in which articles
 dfm[1:3,1:4]##checking
 g <- create_network(dfm, min_studies=20)
+head(g)
 
 #-------network graph
 memory.limit(size=30000)
@@ -52,7 +53,7 @@ ggraph(g, layout="stress") +
   coord_fixed() +
   expand_limits(x=c(-3, 3)) +
   geom_edge_link(aes(alpha=weight)) +
-  geom_node_point(shape="circle filled", fill="white") +
+  geom_node_point(shape="circle filled", fill="blue") +
   geom_node_text(aes(label=name), hjust="outward", check_overlap=TRUE)+
   guides(edge_alpha=FALSE)
 
