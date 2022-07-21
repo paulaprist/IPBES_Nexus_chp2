@@ -14,9 +14,6 @@ library(ggraph)
 search_directory <- here("data")
 
 #----Naive Search
-#---From Scopus
-#naive terms:Biodiversity AND "human health" AND water AND food AND climate
-
 #----import txt file from our scopus search
 naiveimport <-
   litsearchr::import_results(directory = search_directory, verbose = TRUE)
@@ -24,6 +21,7 @@ naiveimport <-
 #-----remove duplicates
 naiveresults <-
   litsearchr::remove_duplicates(naiveimport, field = "title", method = "string_osa")
+names(naiveresults)
 
 #-----extract the keywords from title, abstract and keywords
 rakedkeywords <-
@@ -34,7 +32,7 @@ rakedkeywords <-
     language = "English")
 
 taggedkeywords <-
-  litsearchr::extract_terms(keywords = naiveresults$index_keywords,
+  litsearchr::extract_terms(keywords = naiveresults$keywords,
                             method = "tagged",min_freq = 2,
                             ngrams = TRUE,min_n = 2,
                             language = "English")
@@ -74,7 +72,7 @@ cutoff_fig <- ggplot(term_strengths, aes(x=rank, y=strength, label=term)) +
 cutoff_fig
 
 #----retaining 80% of the search terms
-cutoff_cum <- litsearchr::find_cutoff(g, method="cumulative", percent=0.9)
+cutoff_cum <- litsearchr::find_cutoff(g, method="cumulative", percent=0.8)
 cutoff_cum
 cutoff_fig +geom_hline(yintercept=cutoff_cum, linetype="dashed")
 
@@ -84,6 +82,34 @@ head(cut)
 length(cut)
 cut
 
+#---adding extra terms that were not selected
+extra_terms <- c("biodiversity","zoonotic","mental Health","nutrition")
+
+#----final_terms to be used
+final_terms <- c(cut, extra_terms)
+final_terms
+
+#----grouping the terms (we removed some non sense words)
+grouped_terms <-list(biodiversity=final_terms[c(6,7,21,23,39,42,54)],
+                     health=final_terms[c(16,17,55,56)],
+                     water=final_terms[c(25,26,27,28,29,51,52,53)],
+                     food=final_terms[c(5,10,11,30,45,58)],
+                     climate=final_terms[c(1,2,3,4,13)],
+                     drivers=final_terms[c(8,9,15,18,19,20,38,41,44)])
+
+grouped_terms
+
+###doing a new search
+litsearchr::write_search(grouped_terms,
+                         languages="English",
+                         exactphrase=TRUE,
+                         stemming=FALSE,
+                         closure="left",
+                         writesearch=T,
+                         directory = here("output/"))
+
+
+#----do not run----###
 #---As we end up with many keywords lets try another method
 #----identifying places where the ascending line jumps up'
 cutoff_change <- litsearchr::find_cutoff(g, method="changepoint", knot_num=3)
@@ -99,7 +125,6 @@ length(selected_terms)
 
 #---adding extra terms that were not selected
 extra_terms <- c("biodiversity","zoonotic","mental Health","human wll-being")
-
 
 #----final_terms to be used
 final_terms <- c(selected_terms, extra_terms)
